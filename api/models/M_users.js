@@ -18,7 +18,7 @@ const userSchema = new Schema(
     password: {
       type: String,
       required: [true, 'Password is required'],
-      select: false, // Don't return password in queries by default
+      // select: false, // Don't return password in queries by default
     },
     role: {
       type: String,

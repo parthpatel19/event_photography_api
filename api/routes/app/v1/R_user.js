@@ -34,7 +34,7 @@ const {
     checkEmailAddressDto,
     checkMobileNumberDto,
     signUpDto,
-    signInDto,
+    // signInDto,
     changePasswordDto,
     forgotPasswordDto,
     verifyOtpDto,
@@ -59,7 +59,7 @@ app_router.post("/guest_session", multipartMiddleware, validateRequest(guestSess
 app_router.post("/check_email_address", multipartMiddleware, validateRequest(checkEmailAddressDto), checkEmailAddress);
 app_router.post("/check_mobile_number", multipartMiddleware, validateRequest(checkMobileNumberDto), checkMobileNumber);
 app_router.post("/sign_up", multipartMiddleware, validateRequest(signUpDto), signUp);
-app_router.post("/sign_in", multipartMiddleware, validateRequest(signInDto), signIn);
+app_router.post("/sign_in", multipartMiddleware, signIn);
 app_router.post("/change_password", multipartMiddleware, userAuth, validateRequest(changePasswordDto), changePassword);
 app_router.post("/forgot_password", multipartMiddleware, validateRequest(forgotPasswordDto), forgotPassword);
 app_router.post("/verify_otp", multipartMiddleware, validateRequest(verifyOtpDto), verifyOtp);

@@ -22,6 +22,8 @@ const securePassword = async (password) => {
 };
 
 const comparePassword = async (password, dbPassword) => {
+
+    console.log("password, dbPassword",password, dbPassword)
     const originalPwd = await decryptPassword(dbPassword);
 
     if (originalPwd == password) {

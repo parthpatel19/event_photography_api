@@ -6,7 +6,7 @@ const { auth, restrictTo } = require('../middleware/auth');
 const Studio = require('../models/M_studios');
 const TeamMember = require('../models/M_team_members');
 const { sendEmail } = require('../utils/email');
-const { generateMFASecret, verifyMFAToken } = require('../utils/mfa');
+const { verifyMFAToken } = require('../utils/mfa');
 const {
     registerStudio,
     registerTeamMember,

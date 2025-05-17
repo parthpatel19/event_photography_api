@@ -17,8 +17,9 @@ const checkMobileNumberDto = joi.object().keys({
 });
 
 const signUpDto = joi.object().keys({
-    full_name: joi.string().allow().label("Full name"),
-    email_address: joi.string().allow().label("Email address"),
+    name: joi.string().allow().label("name"),
+    email: joi.string().allow().label("Email"),
+    role: joi.string().allow().label("Role"),
     country_code: joi.string().allow().label("Country code"),
     country_string_code: joi.string().allow().label("Country string code"),
     mobile_number: joi.string().allow().label("Mobile number"),
@@ -32,7 +33,7 @@ const signUpDto = joi.object().keys({
 });
 
 const signInDto = joi.object().keys({
-    email_address: joi.string().allow().label("Email address"),
+    email: joi.string().allow().label("Email address"),
     device_token: joi.string().allow().label("Device token"),
     full_name: joi.string().allow().label("Full name"),
     device_type: joi.string().allow().label("Device type"),

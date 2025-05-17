@@ -8,7 +8,7 @@ const { errorRes, successRes, multiSuccessRes } = require("../../../../utils/res
 
 const { sendOtpForgotPassword } = require("../../../../utils/send_mail");
 
-const { findUserAlbum, findUserAlbumId, findSocialBlockUser, objectId, findReview, findOwnReview, findExistingReview, findGuestUser, findSocialEmailAddress, findEmailAddress, findMobileNumber, findUser, findVerifyEmailAddress, findAlbumById } = require("../../../../utils/user_function");
+const { findUserAlbum, findUserAlbumId, objectId, findReview, findOwnReview, findExistingReview, findGuestUser, findEmailAddress, findMobileNumber, findUser, findVerifyEmailAddress, findAlbumById } = require("../../../../utils/user_function");
 
 const {
     securePassword,
@@ -161,7 +161,7 @@ const checkMobileNumber = async (req, res) => {
 // };
 
 
-const signup = async (req, res) => {
+const signUp = async (req, res) => {
     try {
         const { email, password, role, name } = req.body;
 
@@ -174,7 +174,7 @@ const signup = async (req, res) => {
 
         let hashedPassword;
         if (password) {
-         hashedPassword = await securePassword(password);
+            hashedPassword = await securePassword(password);
         }
 
         const create_user = await users.create({
@@ -185,8 +185,8 @@ const signup = async (req, res) => {
         });
 
         const token = await userToken(create_user);
-//         const create_user = await users.create(insert_data);
-  
+        //         const create_user = await users.create(insert_data);
+
         // const session = await user_sessions.create(
         //     {
         //         user_id: create_user._id,
@@ -199,7 +199,7 @@ const signup = async (req, res) => {
         //     },
         // );
 
-     
+
         const res_data = {
             ...create_user._doc,
             token: token,
@@ -213,24 +213,27 @@ const signup = async (req, res) => {
         res.status(500).json({ message: 'Signup failed', error: err.message });
     }
 };
+
 const signIn = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        const find_user = await users.findOne({ email, is_deleted: false })
-        
+        const find_user = await users.findOne({ email, is_deleted: false });
+
         if (!find_user) return res.status(401).json({ message: 'Invalid email or password' });
 
-        
+        console.log("find_user",find_user)
+        console.log("sign_in", req.body)
+
         const password_verify = await comparePassword(password, find_user.password);
 
         if (!password_verify) {
             return errorRes(res, res.__("Incorrect password. Please try again."));
         }
-        
+
         const token = await userToken(find_user);
 
-             
+
         const res_data = {
             ...find_user._doc,
             token: token,
@@ -1149,7 +1152,7 @@ const getUserReview = async (req, res) => {
         const res_data = {
             average_rating: Number(result[0].averageRating).toFixed(1),
             total_review: result[0].totalReviews,
-        }
+        };
 
         return successRes(res, res.__("Reviews fetched successfully."), res_data);
     } catch (error) {
@@ -1281,7 +1284,7 @@ const userReviewDetail = async (req, res) => {
             user_profile: user_album ? process.env.BUCKET_URL + user_album : null,
             average_rating: Number(result[0].averageRating).toFixed(1) ? Number(result[0].averageRating).toFixed(1) : 0,
             total_review: result[0].totalReviews ? result[0].totalReviews : 0,
-        }
+        };
 
         return successRes(res, res.__("Reviews detail fetched successfully"), res_data);
     } catch (error) {
@@ -1416,7 +1419,7 @@ const userUpdatedData = async (req, res) => {
             ...find_user._doc,
             user_profile: user_album ? process.env.BUCKET_URL + user_album : null,
             album_id: album_id,
-        }
+        };
 
         return successRes(res, res.__("Successfully updated user data"), res_data);
     } catch (error) {
