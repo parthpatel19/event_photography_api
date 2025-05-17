@@ -46,9 +46,11 @@
     "node-cron": "^3.0.3",
     "nodemailer": "^6.9.15",
     "path": "^0.12.7",
+    "qrcode": "^1.5.3",
     "redis": "^4.7.0",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
+    "speakeasy": "^2.0.0",
     "stream": "^0.0.3",
     "util": "^0.12.5"
   },

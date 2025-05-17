@@ -81,236 +81,165 @@ const checkMobileNumber = async (req, res) => {
     }
 };
 
-const signUp = async (req, res) => {
+// const signUp = async (req, res) => {
+//     try {
+//         const {
+//             full_name,
+//             email_address,
+//             country_code,
+//             country_string_code,
+//             mobile_number,
+//             is_social_login,
+//             social_id,
+//             social_platform,
+//             device_token,
+//             device_type,
+//             password,
+//             ln
+//         } = req.body;
+
+//         i18n.setLocale(req, ln);
+
+//         const insert_data = {
+//             full_name,
+//             email_address,
+//             country_code,
+//             country_string_code,
+//             mobile_number,
+//         };
+
+//         if (is_social_login == true || is_social_login == "true") {
+//             insert_data.is_social_login = is_social_login;
+//             insert_data.social_id = social_id;
+//             insert_data.social_platform = social_platform;
+//         }
+
+//         if (password) {
+//             const hashedPassword = await securePassword(password);
+//             insert_data.password = hashedPassword;
+//         }
+
+//         await email_verifications.create({
+//             email_address: email_address,
+//             is_email_verified: true,
+//         });
+
+//         const create_user = await users.create(insert_data);
+
+//         const token = await userToken(create_user);
+
+//         const session = await user_sessions.create(
+//             {
+//                 user_id: create_user._id,
+//                 user_type: "user",
+//                 device_token: device_token,
+//                 auth_token: token,
+//                 device_type: device_type,
+//                 is_login: true,
+//                 is_active: true,
+//             },
+//         );
+
+//         await guests.deleteMany({
+//             device_token: device_token,
+//             device_type: device_type,
+//         });
+
+//         const res_data = {
+//             ...create_user._doc,
+//             token: token,
+//             device_token: session.device_token,
+//             device_type: session.device_type,
+//             user_profile: null,
+//         };
+
+//         return successRes(res, res.__("User signup successfully"), res_data);
+//     } catch (error) {
+//         console.log("Error : ", error);
+//         return errorRes(res, res.__("Internal server error"));
+//     }
+// };
+
+
+const signup = async (req, res) => {
     try {
-        const {
-            full_name,
-            email_address,
-            country_code,
-            country_string_code,
-            mobile_number,
-            is_social_login,
-            social_id,
-            social_platform,
-            device_token,
-            device_type,
-            password,
-            ln
-        } = req.body;
+        const { email, password, role, name } = req.body;
 
-        i18n.setLocale(req, ln);
+        // Check if user already exists
+        const existingUser = await users.findOne({ email });
+        if (existingUser) return res.status(409).json({ message: 'Email already in use' });
 
-        const insert_data = {
-            full_name,
-            email_address,
-            country_code,
-            country_string_code,
-            mobile_number,
-        };
+        // Hash password
+        // const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
-        if (is_social_login == true || is_social_login == "true") {
-            insert_data.is_social_login = is_social_login;
-            insert_data.social_id = social_id;
-            insert_data.social_platform = social_platform;
-        }
-
+        let hashedPassword;
         if (password) {
-            const hashedPassword = await securePassword(password);
-            insert_data.password = hashedPassword;
+         hashedPassword = await securePassword(password);
         }
 
-        await email_verifications.create({
-            email_address: email_address,
-            is_email_verified: true,
+        const create_user = await users.create({
+            email,
+            password: hashedPassword,
+            role: role?.toLowerCase() === 'studio/agency' ? 'studio' : role?.toLowerCase(),
+            name,
         });
-
-        const create_user = await users.create(insert_data);
 
         const token = await userToken(create_user);
+//         const create_user = await users.create(insert_data);
+  
+        // const session = await user_sessions.create(
+        //     {
+        //         user_id: create_user._id,
+        //         user_type: "user",
+        //         device_token: device_token,
+        //         auth_token: token,
+        //         device_type: device_type,
+        //         is_login: true,
+        //         is_active: true,
+        //     },
+        // );
 
-        const session = await user_sessions.create(
-            {
-                user_id: create_user._id,
-                user_type: "user",
-                device_token: device_token,
-                auth_token: token,
-                device_type: device_type,
-                is_login: true,
-                is_active: true,
-            },
-        );
-
-        await guests.deleteMany({
-            device_token: device_token,
-            device_type: device_type,
-        });
-
+     
         const res_data = {
             ...create_user._doc,
             token: token,
-            device_token: session.device_token,
-            device_type: session.device_type,
-            user_profile: null,
+            // device_token: session.device_token,
+            // device_type: session.device_type,
+            // user_profile: null,
         };
-
         return successRes(res, res.__("User signup successfully"), res_data);
-    } catch (error) {
-        console.log("Error : ", error);
-        return errorRes(res, res.__("Internal server error"));
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Signup failed', error: err.message });
     }
 };
-
 const signIn = async (req, res) => {
     try {
-        const { email_address, full_name, device_type, device_token, password, is_social_login, social_id, social_platform, ln } = req.body;
-        i18n.setLocale(req, ln);
+        const { email, password } = req.body;
 
-        if (is_social_login == true || is_social_login == "true") {
-            const find_user = await findSocialEmailAddress(email_address);
+        const find_user = await users.findOne({ email, is_deleted: false })
+        
+        if (!find_user) return res.status(401).json({ message: 'Invalid email or password' });
 
-            if (find_user) {
-                if (find_user.social_platform != null) {
-                    if (find_user.social_platform != social_platform) {
-                        return errorRes(
-                            res,
-                            res.__("auth.email_already_used", { platform: find_user.social_platform })
-                        );
-                    }
-                }
-                if (find_user.is_blocked_by_admin == true || find_user.is_blocked_by_admin == "true") {
-                    return errorRes(
-                        res,
-                        res.__("This account has been blocked. Please get in touch with the administrator.")
-                    );
-                }
+        
+        const password_verify = await comparePassword(password, find_user.password);
 
-                const token = await userToken(find_user);
-
-                const session = await user_sessions.create(
-                    {
-                        user_id: find_user._id,
-                        user_type: "user",
-                        device_token: device_token,
-                        auth_token: token,
-                        device_type: device_type,
-                        is_login: true,
-                        is_active: true,
-                    },
-                );
-
-                await guests.deleteMany({
-                    device_token: device_token,
-                    device_type: device_type,
-                });
-
-                const res_data = {
-                    ...find_user._doc,
-                    token: token,
-                    device_token: session.device_token,
-                    device_type: session.device_type,
-                    user_profile: null,
-                };
-
-                return successRes(res, res.__("User signin successfully"), res_data);
-            } else {
-                const find_existing_user = await findSocialBlockUser(email_address);
-
-                if (find_existing_user) {
-                    return errorRes(
-                        res,
-                        res.__("This account has been blocked. Please get in touch with the administrator.")
-                    );
-                }
-
-                const insert_data = {
-                    email_address,
-                    full_name,
-                    is_social_login,
-                    social_id,
-                    social_platform,
-                };
-
-                await email_verifications.create({
-                    email_address: email_address,
-                    is_email_verified: true,
-                });
-
-                const create_user = await users.create(insert_data);
-
-                const token = await userToken(create_user);
-
-                const session = await user_sessions.create(
-                    {
-                        user_id: create_user._id,
-                        user_type: "user",
-                        device_token: device_token,
-                        auth_token: token,
-                        device_type: device_type,
-                        is_login: true,
-                        is_active: true,
-                    },
-                );
-
-                await guests.deleteMany({
-                    device_token: device_token,
-                    device_type: device_type,
-                });
-
-                const res_data = {
-                    ...create_user._doc,
-                    token: token,
-                    device_token: session.device_token,
-                    device_type: session.device_type,
-                    user_profile: null,
-                };
-
-                return successRes(res, res.__("User signin successfully"), res_data);
-            }
-        } else {
-            const find_user = await findEmailAddress(email_address);
-
-            if (!find_user) {
-                return errorRes(res, res.__("No account was found with this email address"));
-            }
-
-            const password_verify = await comparePassword(password, find_user.password);
-
-            if (!password_verify) {
-                return errorRes(res, res.__("Incorrect password. Please try again."));
-            }
-
-            if (find_user.is_blocked_by_admin == true || find_user.is_blocked_by_admin == "true") {
-                return errorRes(res, res.__("This account has been blocked. Please get in touch with the administrator."));
-            }
-
-            const token = await userToken(find_user);
-
-            await user_sessions.create(
-                {
-                    user_id: find_user._id,
-                    user_type: find_user.user_type,
-                    device_token: device_token,
-                    auth_token: token,
-                    device_type: device_type,
-                    is_login: true,
-                },
-            );
-
-            await guests.deleteMany({
-                device_token: device_token,
-                device_type: device_type,
-            });
-
-            const user_album = await findUserAlbum(find_user._id);
-
-            const res_data = {
-                ...find_user._doc,
-                token: token,
-                user_profile: user_album ? process.env.BUCKET_URL + user_album : null,
-            };
-
-            return successRes(res, res.__("Successfully logged in"), res_data);
+        if (!password_verify) {
+            return errorRes(res, res.__("Incorrect password. Please try again."));
         }
+        
+        const token = await userToken(find_user);
+
+             
+        const res_data = {
+            ...find_user._doc,
+            token: token,
+            // device_token: session.device_token,
+            // device_type: session.device_type,
+            // user_profile: null,
+        };
+        return successRes(res, res.__("User login successfully"), res_data);
+
     } catch (error) {
         console.log("Error : ", error);
         return errorRes(res, res.__("Internal server error"));
